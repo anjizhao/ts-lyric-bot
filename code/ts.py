@@ -5,8 +5,11 @@ import requests
 import time
 from typing import Any, Dict, List, NamedTuple, Optional, Set
 
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import tqdm
+
+# to do: unidecode strings :(
 
 
 load_dotenv()
@@ -18,12 +21,44 @@ GENIUS_ARTIST_ID = 1177
 
 DATA_DIR = 'data'
 
+ALLOWED_ALBUM_IDS = {
+    10982, 12682, 12731, 39005, 39094, 87979, 110728, 152556, 313068, 335029,
+    350177, 350247, 361954, 463904, 520929, 545561, 597875, 597883, 621286,
+    628059, 659925, 659926, 710140, 726425,
+}
 
-# create request session with auth header
-_session = requests.Session()
-_session.headers.update(
+OVERRIDE_INCLUDE_SONG_IDS = {
+    187017, 5077615, 132082, 187250, 132098, 5191847, 132079, 132092, 642957,
+    186908, 3646550, 2887929,
+}
+
+OVERRIDE_EXCLUDE_SONG_IDS = {
+    5077615, 5114093, 3331438, 187340, 1953921, 1983447, 186824, 186846,
+    186852, 186870, 4969382
+}
+
+TS_ALBUM_NAMES = [
+    'The Taylor Swift Holiday Collection',  # check this before 'Taylor Swift'
+    'Taylor Swift',
+    'Fearless',
+    'Speak Now',
+    'Red',
+    '1989',
+    'reputation',
+    'Lover',
+    'folklore',
+    'evermore',
+]
+
+
+# create request session with auth header for genius api
+_api_session = requests.Session()
+_api_session.headers.update(
     {'Authorization': 'Bearer {}'.format(GENIUS_CLIENT_ACCESS_TOKEN)}
 )
+
+# session for scraping the actual lyric pages
+_web_session = requests.Session()
 
 
 class Song(NamedTuple):
@@ -33,6 +68,7 @@ class Song(NamedTuple):
     song_title: Optional[str]
     album_name: Optional[str]
     artist_name: Optional[str]
+    url: str
 
 
 def genius_get(
@@ -49,7 +85,7 @@ def genius_get(
     if headers is None:
         headers = {}
     url = GENIUS_API_BASE + path
-    res = _session.get(url, params=params, headers=headers)
+    res = _api_session.get(url, params=params, headers=headers)
     res.raise_for_status()
     return res.json().get('response')
 
@@ -87,6 +123,7 @@ def get_song_data(song_id: int) -> Song:
         album_name=album.get('name'),
         artist_id=primary_artist.get('id'),
         artist_name=primary_artist.get('name'),
+        url=song_data['url'],  # assuming this key always exists....
     )
 
 
@@ -116,11 +153,94 @@ def read_songs_from_csv(file_path: str) -> List[Song]:
     with open(file_path, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
+            for k, v in row.items():
+                if v.isdigit() and k.endswith('_id'):
+                    # convert ids back to numbers
+                    row[k] = int(v)  # type: ignore
             songs.append(Song(**row))  # type: ignore
     return songs
 
 
-if __name__ == '__main__':
+def download_song_data() -> List[Song]:
+    ''' fetch data from genius api, save data to file, return list of songs '''
     song_ids = get_all_song_ids(per_page=50)
     all_songs = load_songs(song_ids)
     write_songs_to_csv(all_songs, 'all_songs')
+    return all_songs
+
+
+def valid_ts(s: Song) -> bool:
+
+    if s.song_id in OVERRIDE_INCLUDE_SONG_IDS:
+        return True
+    if s.song_id in OVERRIDE_EXCLUDE_SONG_IDS:
+        return False
+
+    if s.album_id not in ALLOWED_ALBUM_IDS:
+        return False
+
+    if not s.song_title:
+        return False
+
+    song_title = s.song_title.lower()
+    if ('[' in song_title) and (']' in song_title):
+        return False
+    if 'remix' in song_title:
+        return False
+    if 'version' in song_title:
+        return False
+    if 'voice memo' in song_title:
+        return False
+
+    return True
+
+
+def filter_ts_songs(all_songs: List[Song]) -> List[Song]:
+    return [s for s in all_songs if valid_ts(s)]
+
+
+def fetch_lyrics(url: str) -> str:
+    res = _web_session.get(url)
+    res.raise_for_status()
+    soup = BeautifulSoup(res.text, 'html.parser')
+    lyrics = soup.find_all('div', class_='lyrics')
+    assert(len(lyrics) == 1)
+    lyrics = lyrics[0]
+    return lyrics.get_text().strip()
+
+
+def _standardize_album_name(album_name: Optional[str]) -> str:
+    if album_name:
+        for known_name in TS_ALBUM_NAMES:
+            if known_name in album_name:
+                return known_name
+        if album_name == '2004-2005 Demo CD':
+            return 'Taylor Swift'  # a couple of songs are wrongly labeled...
+    return 'Other'
+
+
+def download_lyrics(song: Song) -> None:
+    ''' scrape song url for lyrics and write them to a text file. '''
+    album = _standardize_album_name(song.album_name)
+    directory_name = '{}/lyrics/{}'.format(DATA_DIR, album)
+    os.makedirs(directory_name, exist_ok=True)  # make sure directory exists
+    file_path = '{}/{}.txt'.format(directory_name, song.song_title)
+    lyrics = fetch_lyrics(song.url)
+    with open(file_path, 'w') as txtfile:
+        txtfile.write(lyrics)
+
+
+def download_all_lyrics(songs: List[Song]) -> None:
+    for song in tqdm.tqdm(songs, desc='download_all_lyrics'):
+        download_lyrics(song)
+        time.sleep(1)  # bein extra conservative with the scraping :zany:
+
+
+if __name__ == '__main__':
+    # all_songs = download_song_data()
+    # all_songs = read_songs_from_csv('data/all_songs_1615417479.csv')
+    # ts_songs = filter_ts_songs(all_songs)
+    # write_songs_to_csv(ts_songs, 'ts_songs')
+    ts_songs = read_songs_from_csv('data/ts_songs_1615418759.csv')
+    download_all_lyrics(ts_songs)
+    pass
