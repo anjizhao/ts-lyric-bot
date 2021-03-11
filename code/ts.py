@@ -8,8 +8,7 @@ from typing import Any, Dict, List, NamedTuple, Optional, Set
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import tqdm
-
-# to do: unidecode strings :(
+from unidecode import unidecode
 
 
 load_dotenv()
@@ -108,6 +107,13 @@ def get_all_song_ids(per_page: int = 20) -> List[int]:
     return sorted(song_ids)
 
 
+def _safe_clean_str(input_: Optional[str]) -> str:
+    ''' convert input to a "clean" str (unidecoded, stripped). '''
+    if input_ is None:
+        return ''
+    return unidecode(input_).strip()
+
+
 def get_song_data(song_id: int) -> Song:
     data: Dict[str, Dict] = genius_get(
         '/songs/{}'.format(song_id),
@@ -118,11 +124,11 @@ def get_song_data(song_id: int) -> Song:
     primary_artist = song_data.get('primary_artist') or {}
     return Song(
         song_id=song_id,
-        song_title=song_data.get('title'),
+        song_title=_safe_clean_str(song_data.get('title')),
         album_id=album.get('id'),
-        album_name=album.get('name'),
+        album_name=_safe_clean_str(album.get('name')),
         artist_id=primary_artist.get('id'),
-        artist_name=primary_artist.get('name'),
+        artist_name=_safe_clean_str(primary_artist.get('name')),
         url=song_data['url'],  # assuming this key always exists....
     )
 
@@ -206,7 +212,7 @@ def fetch_lyrics(url: str) -> str:
     lyrics = soup.find_all('div', class_='lyrics')
     assert(len(lyrics) == 1)
     lyrics = lyrics[0]
-    return lyrics.get_text().strip()
+    return lyrics.get_text()
 
 
 def _standardize_album_name(album_name: Optional[str]) -> str:
@@ -227,7 +233,7 @@ def download_lyrics(song: Song) -> None:
     file_path = '{}/{}.txt'.format(directory_name, song.song_title)
     lyrics = fetch_lyrics(song.url)
     with open(file_path, 'w') as txtfile:
-        txtfile.write(lyrics)
+        txtfile.write(_safe_clean_str(lyrics))
 
 
 def download_all_lyrics(songs: List[Song]) -> None:
@@ -238,9 +244,9 @@ def download_all_lyrics(songs: List[Song]) -> None:
 
 if __name__ == '__main__':
     # all_songs = download_song_data()
-    # all_songs = read_songs_from_csv('data/all_songs_1615417479.csv')
+    # all_songs = read_songs_from_csv('data/all_songs_1615486712.csv')
     # ts_songs = filter_ts_songs(all_songs)
     # write_songs_to_csv(ts_songs, 'ts_songs')
-    ts_songs = read_songs_from_csv('data/ts_songs_1615418759.csv')
+    ts_songs = read_songs_from_csv('data/ts_songs_1615486996.csv')
     download_all_lyrics(ts_songs)
     pass
