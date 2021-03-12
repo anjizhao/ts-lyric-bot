@@ -28,7 +28,7 @@ ALLOWED_ALBUM_IDS = {
 
 OVERRIDE_INCLUDE_SONG_IDS = {
     187017, 5077615, 132082, 187250, 132098, 5191847, 132079, 132092, 642957,
-    186908, 3646550, 2887929,
+    186908, 3646550, 2887929, 186861,
 }
 
 OVERRIDE_EXCLUDE_SONG_IDS = {
@@ -111,7 +111,7 @@ def _safe_clean_str(input_: Optional[str]) -> str:
     ''' convert input to a "clean" str (unidecoded, stripped). '''
     if input_ is None:
         return ''
-    return unidecode(input_).strip()
+    return unidecode(input_.replace('\u200b', '')).strip()
 
 
 def get_song_data(song_id: int) -> Song:
@@ -217,11 +217,18 @@ def fetch_lyrics(url: str) -> str:
 
 def _standardize_album_name(album_name: Optional[str]) -> str:
     if album_name:
+        if album_name == 'Taylor Swift (Best Buy Exclusive)':
+            return 'Other'  # I Heart ?
         for known_name in TS_ALBUM_NAMES:
             if known_name in album_name:
                 return known_name
         if album_name == '2004-2005 Demo CD':
             return 'Taylor Swift'  # a couple of songs are wrongly labeled...
+        if album_name == 'Stripped: Raw & Real':
+            return 'Fearless'  # Untouchable is wrongly labeled
+        if album_name == '2003 Demo CD':
+            return 'The Taylor Swift Holiday Collection'
+
     return 'Other'
 
 
@@ -244,9 +251,9 @@ def download_all_lyrics(songs: List[Song]) -> None:
 
 if __name__ == '__main__':
     # all_songs = download_song_data()
-    # all_songs = read_songs_from_csv('data/all_songs_1615486712.csv')
+    # all_songs = read_songs_from_csv('data/all_songs_1615501842.csv')
     # ts_songs = filter_ts_songs(all_songs)
     # write_songs_to_csv(ts_songs, 'ts_songs')
-    ts_songs = read_songs_from_csv('data/ts_songs_1615486996.csv')
-    download_all_lyrics(ts_songs)
+    ts_songs = read_songs_from_csv('data/ts_songs_1615501842.csv')
+    # download_all_lyrics(ts_songs)
     pass
