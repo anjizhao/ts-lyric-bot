@@ -5,6 +5,8 @@ from functools import partial
 from statistics import mean
 from typing import Iterator, List, Optional
 
+# monkey-patched Vocabulary (needs to be imported before LanguageModel)
+from code.vocabulary_patch import Vocabulary  # noqa
 
 from nltk.lm.models import LanguageModel, Laplace
 from nltk.lm.preprocessing import flatten, pad_both_ends
