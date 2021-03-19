@@ -152,15 +152,19 @@ def read_csv_to_df(filename: str) -> pd.DataFrame:
     return df
 
 
-def plot_lidstone(df):
+def plot_tuning_results(
+    df: pd.DataFrame,
+    model_name: str = 'model',
+    hp: str = 'alpha',  # `hp` is the name of the hyperparameter (e.g. alpha)
+):
     cmap = plt.get_cmap('viridis')
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
     orders = sorted(set(df.order))
-    alphas = sorted(set(df.alpha))  # noqa
+    hps = sorted(set(df[hp]))  # noqa
     for j, metric in enumerate(['train_entropy_mean', 'test_entropy_mean']):
         for i, order in enumerate(orders):
             df[df.order == order].plot(
-                'alpha',
+                hp,
                 metric,
                 kind='scatter',
                 label='order={}'.format(order),
@@ -169,22 +173,27 @@ def plot_lidstone(df):
                 color=cmap(order / 4),
             )
         axes[j].set_title(metric)
-        # axes[j].set_xticks(alphas)
+        # axes[j].set_xticks(hps)
         axes[j].set_ylabel('entropy')
         # axes[j].legend(loc='lower right')
-    plt.suptitle('lidstone hyperparameters')
+    plt.suptitle('{} hyperparameters'.format(model_name))
     plt.show()
 
 
-def plot_lidstone_compare(df1, df2, metric='test_entropy_mean'):
+def plot_tuning_results_compare(
+    df1, df2,
+    model_name: str = 'model',
+    hp: str = 'alpha',
+    metric='test_entropy_mean',
+):
     cmap = plt.get_cmap('viridis')
     fig, axes = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(10, 5))
     orders = sorted(set(df1.order))
-    alphas = sorted(set(df1.alpha))  # noqa
+    hps = sorted(set(df1[hp]))  # noqa
     for j, df in enumerate([df1, df2]):
         for i, order in enumerate(orders):
             df[df.order == order].plot(
-                'alpha',
+                hp,
                 metric,
                 kind='scatter',
                 label='order={}'.format(order),
@@ -194,41 +203,18 @@ def plot_lidstone_compare(df1, df2, metric='test_entropy_mean'):
             )
         axes[j].grid(True)
         axes[j].set_title('df{}'.format(j))
-        # axes[j].set_xticks(alphas)
+        # axes[j].set_xticks(hps)
         axes[j].set_ylabel('entropy')
         # axes[j].legend(loc='lower right')
-    plt.suptitle('lidstone hyperparameters')
+    plt.suptitle('{} hyperparameters'.format(model_name))
     plt.show()
 
 
-
-def plot_kn(df):
-    cmap = plt.get_cmap('viridis')
-    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-    orders = sorted(set(df.order))
-    discounts = sorted(set(df.discount))  # noqa
-    for j, metric in enumerate(['train_entropy_mean', 'test_entropy_mean']):
-        for i, order in enumerate(orders):
-            df[df.order == order].plot(
-                'discount',
-                metric,
-                kind='scatter',
-                label='order={}'.format(order),
-                legend=True,
-                ax=axes[j],
-                color=cmap(order / 4),
-            )
-        axes[j].set_title(metric)
-        # axes[j].set_xticks(discounts)
-        axes[j].set_ylabel('entropy')
-        # axes[j].legend(loc='upper left')
-    plt.suptitle('kneser-ney hyperparameters')
-    plt.show()
-
-
-def compile_all_lidstone() -> pd.DataFrame:
+def compile_all_lidstone(
+    path: str = 'data/model_selection_lidstone_*.csv',
+) -> pd.DataFrame:
     dfs = []
-    for lidstone_filename in glob.glob('data/model_selection_lidstone_*.csv'):
+    for lidstone_filename in glob.glob(path):
         df = read_csv_to_df(lidstone_filename)
         dfs.append(df)
     return pd.concat(
@@ -239,9 +225,11 @@ def compile_all_lidstone() -> pd.DataFrame:
     ).reset_index(drop=True)
 
 
-def compile_all_kn() -> pd.DataFrame:
+def compile_all_kn(
+    path: str = 'data/model_selection_kn_*.csv',
+) -> pd.DataFrame:
     dfs = []
-    for kn_filename in glob.glob('data/model_selection_kn_*.csv'):
+    for kn_filename in glob.glob(path):
         df = read_csv_to_df(kn_filename)
         dfs.append(df)
     return pd.concat(
@@ -267,35 +255,46 @@ def get_min_per_order(
 if __name__ == '__main__':
     training_corpus = get_train_set()
 
-    lidstone_results = kfold_validation_entropy(
-        lidstone_models, training_corpus, n_splits=4,
-    )
-    lidstone_filename = write_lidstone_results_to_file(lidstone_results)
+    # lidstone_results = kfold_validation_entropy(
+    #     lidstone_models, training_corpus, n_splits=4,
+    # )
+    # lidstone_filename = write_lidstone_results_to_file(lidstone_results)
 
-    # lidstone_filename = 'data/model_selection_lidstone_1616008852.csv'
-    lidstone_df = read_csv_to_df(lidstone_filename)
-    # lidstone_df = compile_all_lidstone()
+    # lidstone_filename = 'data/model_selection_lidstone_1616176024.csv'
+    # lidstone_df = read_csv_to_df(lidstone_filename)
+    lidstone_df = compile_all_lidstone()
+    # lidstone_df_old = compile_all_lidstone(
+    #     'data/model_selection_0/model_selection_lidstone_*.csv',
+    # )
 
-    plot_lidstone(lidstone_df)
+    # plot_tuning_results(lidstone_df, 'lidstone', 'alpha')
     print(get_min_per_order(lidstone_df))
 
-    kn_results = kfold_validation_entropy(
-        kn_models, training_corpus, n_splits=4,
-    )
-    kn_filename = write_kn_results_to_file(kn_results)
+    # plot_tuning_results_compare(lidstone_df_old, lidstone_df)
 
-    # kn_filename = 'data/model_selection_kn_1616024156.csv'
-    kn_df = read_csv_to_df(kn_filename)
-    # kn_df = compile_all_kn()
+    # kn_results = kfold_validation_entropy(
+    #     kn_models, training_corpus, n_splits=4,
+    # )
+    # kn_filename = write_kn_results_to_file(kn_results)
 
-    plot_kn(kn_df)
+    # kn_filename = 'data/model_selection_kn_1616185500.csv'
+    # kn_df = read_csv_to_df(kn_filename)
+    kn_df = compile_all_kn()
+    # kn_df_old = compile_all_kn(
+    #     'data/model_selection_0/model_selection_kn_*.csv',
+    # )
+    # plot_tuning_results(kn_df, 'kneser-ney', 'discount')
     print(get_min_per_order(kn_df))
+
+    # plot_tuning_results_compare(
+    #     kn_df_old, kn_df, model_name='kneser-ney', hp='discount',
+    # )
 
 
 '''
-
 $ python code/model_selection.py
 (params minimizing test_entropy_mean for each order)
+-- ** these models keep all punctuation incl ", (, ), -- !!!! ***
 
         model      order     alpha  train_entropy_mean  test_entropy_mean   ...
 78   Lidstone          1    1.0000            8.423954           8.511394   ...
@@ -308,18 +307,46 @@ $ python code/model_selection.py
 48  KneserNeyInt.      2      0.50            4.659039           6.263645   ...
 99  KneserNeyInt.      3      0.42            2.383805           5.761089   ...
 79  KneserNeyInt.      4      0.28            1.523350           5.751098   ...
+'''
+
 
 '''
+$ python code/model_selection.py
+(params minimizing test_entropy_mean for each order)
+-- ** these models REMOVE these punctuation marks ", (, ), -- !!!! ***
+
+        model      order     alpha  train_entropy_mean  test_entropy_mean   ...
+87  Lidstone           2    0.0040            4.799502           6.472088
+40  Lidstone           3    0.0006            2.487153           5.936380
+29  Lidstone           4    0.0002            1.563236           5.851572
+
+        model      order  discount  train_entropy_mean  test_entropy_mean   ...
+9   KneserNeyInt.      2      0.50            4.647399           6.241376
+46  KneserNeyInt.      3      0.44            2.411580           5.730923
+35  KneserNeyInt.      4      0.28            1.529271           5.702818
+'''
+
+
 
 # test for... generating sensible sentences? we are gonna just not use the
 # unigram models
 
-best_model_defs = [
+best_model_defs_keep_punctuation = [
     LMDef(Lidstone, [0.0040, 2]),
     LMDef(Lidstone, [0.0006, 3]),  # u typed these wrong before anji T_T
     LMDef(Lidstone, [0.0002, 4]),  # u typed these wrong before anji T_T
     LMDef(KneserNeyInterpolated, [2], {'discount': 0.50}),
     LMDef(KneserNeyInterpolated, [3], {'discount': 0.42}),
+    LMDef(KneserNeyInterpolated, [4], {'discount': 0.28}),
+]
+
+
+best_model_defs_punctuation_stripped = [
+    LMDef(Lidstone, [0.0040, 2]),
+    LMDef(Lidstone, [0.0006, 3]),
+    LMDef(Lidstone, [0.0002, 4]),
+    LMDef(KneserNeyInterpolated, [2], {'discount': 0.50}),
+    LMDef(KneserNeyInterpolated, [3], {'discount': 0.44}),
     LMDef(KneserNeyInterpolated, [4], {'discount': 0.28}),
 ]
 
@@ -346,12 +373,16 @@ score_rubric = '''
 
 
 def kfold_score_generated_sentences(
-    test_models: List[LMDef], dataset: List[str], n_splits: int = 4,
+    test_models: List[LMDef],
+    dataset: List[str],
+    n_splits: int = 4,
+    strip_some_punctuation: bool = True,
 ) -> None:
     dataset = np.array(dataset)  # type: ignore
     model_map: Dict[Tuple[int, int], MyNGram] = {
         (model_id, fold_id): MyNGram(
-            model_def.class_(*model_def.args, **model_def.kwargs)
+            model_def.class_(*model_def.args, **model_def.kwargs),
+            strip_some_punctuation=strip_some_punctuation,
         )
         for model_id, model_def in enumerate(test_models)
         for fold_id in range(n_splits)
@@ -443,7 +474,7 @@ def counts_to_df(
 def plot_pandas():
     file_score_counts = count_file_scores(get_sentence_scores())
     df = counts_to_df(file_score_counts)
-    scores = [c for c in df.columns if type(c) == int]
+    scores = sorted([c for c in df.columns if type(c) == int], reverse=True)
     fig, axes = plt.subplots(2, 3, sharex=True, sharey=True)
     for model_id in sorted(set(df.model_id)):
         ax = axes.flatten()[model_id]

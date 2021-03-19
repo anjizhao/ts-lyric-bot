@@ -30,6 +30,7 @@ class MyNGram:
         self,
         model: LanguageModel = None,  # an instantiated nltk language model
         include_lower_order_grams: bool = False,
+        strip_some_punctuation: bool = True,
         start_token: str = '<s>',
         end_token: str = '</s>',
     ) -> None:
@@ -43,6 +44,7 @@ class MyNGram:
         self.order = self.model.order
 
         self.include_lower_order_grams = include_lower_order_grams
+        self.strip_some_punctuation = strip_some_punctuation
 
         self.start_token = start_token
         self.end_token = end_token
@@ -55,8 +57,8 @@ class MyNGram:
         )
 
 
-    def tokenize(self, text: str, strip_some_punctuation: bool = True) -> List[str]:
-        if strip_some_punctuation:
+    def tokenize(self, text: str) -> List[str]:
+        if self.strip_some_punctuation:
             return word_tokenize(
                 text.lower().replace('"', '').replace(
                     '(', '').replace(')', '').replace('--', '')
