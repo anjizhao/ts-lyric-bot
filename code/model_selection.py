@@ -176,6 +176,32 @@ def plot_lidstone(df):
     plt.show()
 
 
+def plot_lidstone_compare(df1, df2, metric='test_entropy_mean'):
+    cmap = plt.get_cmap('viridis')
+    fig, axes = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(10, 5))
+    orders = sorted(set(df1.order))
+    alphas = sorted(set(df1.alpha))  # noqa
+    for j, df in enumerate([df1, df2]):
+        for i, order in enumerate(orders):
+            df[df.order == order].plot(
+                'alpha',
+                metric,
+                kind='scatter',
+                label='order={}'.format(order),
+                legend=True,
+                ax=axes[j],
+                color=cmap(order / 4),
+            )
+        axes[j].grid(True)
+        axes[j].set_title('df{}'.format(j))
+        # axes[j].set_xticks(alphas)
+        axes[j].set_ylabel('entropy')
+        # axes[j].legend(loc='lower right')
+    plt.suptitle('lidstone hyperparameters')
+    plt.show()
+
+
+
 def plot_kn(df):
     cmap = plt.get_cmap('viridis')
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
@@ -289,9 +315,9 @@ $ python code/model_selection.py
 # unigram models
 
 best_model_defs = [
-    LMDef(Lidstone, [0.004, 2]),
-    LMDef(Lidstone, [0.006, 3]),
-    LMDef(Lidstone, [0.002, 4]),
+    LMDef(Lidstone, [0.0040, 2]),
+    LMDef(Lidstone, [0.0006, 3]),  # u typed these wrong before anji T_T
+    LMDef(Lidstone, [0.0002, 4]),  # u typed these wrong before anji T_T
     LMDef(KneserNeyInterpolated, [2], {'discount': 0.50}),
     LMDef(KneserNeyInterpolated, [3], {'discount': 0.42}),
     LMDef(KneserNeyInterpolated, [4], {'discount': 0.28}),

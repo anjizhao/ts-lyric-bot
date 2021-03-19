@@ -5,9 +5,6 @@ from functools import partial
 from statistics import mean
 from typing import Iterator, List, Optional
 
-# monkey-patched Vocabulary (needs to be imported before LanguageModel)
-from code.vocabulary_patch import Vocabulary  # noqa
-
 from nltk.lm.api import _random_generator, _weighted_choice
 from nltk.lm.models import LanguageModel, Laplace
 from nltk.lm.preprocessing import flatten, pad_both_ends
@@ -58,11 +55,14 @@ class MyNGram:
         )
 
 
-    def tokenize(self, text: str) -> List[str]:
-        return word_tokenize(
-            text.lower().replace('"', '').replace(
-                '(', '').replace(')', '').replace('--', '')
-        )
+    def tokenize(self, text: str, strip_some_punctuation: bool = True) -> List[str]:
+        if strip_some_punctuation:
+            return word_tokenize(
+                text.lower().replace('"', '').replace(
+                    '(', '').replace(')', '').replace('--', '')
+            )
+        else:
+            return word_tokenize(text.lower())
 
 
     def padded_tokenize(self, text: str) -> List[str]:

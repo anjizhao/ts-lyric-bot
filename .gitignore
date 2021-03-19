@@ -61,8 +61,20 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+
+# Sublime Text
+
+# Workspace files are user-specific
+*.sublime-workspace
+
+# Project files should be checked into the repository, unless a significant
+# proportion of contributors will probably not be using Sublime Text
+*.sublime-project
+
+
 # mac stuff
 *.DS_Store
+
 
 # datasets to be stored locally only
 data/*.csv
