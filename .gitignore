@@ -66,5 +66,6 @@ dmypy.json
 
 # datasets to be stored locally only
 data/*.csv
+data/**/*.csv
 data/*.txt
 data/**/*.txt

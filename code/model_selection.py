@@ -26,15 +26,15 @@ class LMDef(NamedTuple):
     kwargs: Dict[str, Any] = dict()
 
 
-test_orders = [1, 2, 3, 4]
+test_orders = [2, 3, 4]
+
 # lidstone_test_alphas = [0.001, 0.01, 0.1, 1, 5]
-lidstone_test_alphas = np.linspace(0, 1, 11)[1:]  # 0-1 excluding 0
+lidstone_test_alphas = np.linspace(0, .5, 11)[1:]  # 0-0.5 excluding 0
 # lidstone_test_alphas = np.linspace(0, 0.001, 11)[1:]  # 0-0.005 excluding 0
 
 # kn_test_discounts = [0.001, 0.01, 0.1, 1]
-# kn_test_discounts = np.linspace(0, 1, 11)[1:]  # 0-1 excluding 0
-kn_test_discounts = np.linspace(0.1, 0.6, 11)  # 0.1-0.6 inclusive
-# kn_test_discounts = np.linspace(0.2, 0.6, 21)  # 0.2-0.6 excl. 0
+kn_test_discounts = np.linspace(0, 1, 11)[1:]  # 0-1 excluding 0
+# kn_test_discounts = np.linspace(0.1, 0.6, 11)  # 0.1-0.6 inclusive
 
 
 lidstone_models = [
@@ -241,27 +241,29 @@ def get_min_per_order(
 if __name__ == '__main__':
     training_corpus = get_train_set()
 
-    # lidstone_results = kfold_validation_entropy(
-    #     lidstone_models, training_corpus, n_splits=4,
-    # )
-    # lidstone_filename = write_lidstone_results_to_file(lidstone_results)
+    lidstone_results = kfold_validation_entropy(
+        lidstone_models, training_corpus, n_splits=4,
+    )
+    lidstone_filename = write_lidstone_results_to_file(lidstone_results)
 
-    # # lidstone_filename = 'data/model_selection_lidstone_1616008852.csv'
-    # # # lidstone_df = read_csv_to_df(lidstone_filename)
+    # lidstone_filename = 'data/model_selection_lidstone_1616008852.csv'
+    lidstone_df = read_csv_to_df(lidstone_filename)
     # lidstone_df = compile_all_lidstone()
-    # plot_lidstone(lidstone_df)
-    # print(get_min_per_order(lidstone_df))
 
-    # # kn_results = kfold_validation_entropy(
-    # #     kn_models, training_corpus, n_splits=4,
-    # # )
-    # # kn_filename = write_kn_results_to_file(kn_results)
+    plot_lidstone(lidstone_df)
+    print(get_min_per_order(lidstone_df))
 
-    # # kn_filename = 'data/model_selection_kn_1616024156.csv'
-    # # kn_df = read_csv_to_df(kn_filename)
+    kn_results = kfold_validation_entropy(
+        kn_models, training_corpus, n_splits=4,
+    )
+    kn_filename = write_kn_results_to_file(kn_results)
+
+    # kn_filename = 'data/model_selection_kn_1616024156.csv'
+    kn_df = read_csv_to_df(kn_filename)
     # kn_df = compile_all_kn()
-    # plot_kn(kn_df)
-    # print(get_min_per_order(kn_df))
+
+    plot_kn(kn_df)
+    print(get_min_per_order(kn_df))
 
 
 '''

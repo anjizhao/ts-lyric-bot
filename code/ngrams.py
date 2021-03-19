@@ -59,7 +59,10 @@ class MyNGram:
 
 
     def tokenize(self, text: str) -> List[str]:
-        return word_tokenize(text.lower())
+        return word_tokenize(
+            text.lower().replace('"', '').replace(
+                '(', '').replace(')', '').replace('--', '')
+        )
 
 
     def padded_tokenize(self, text: str) -> List[str]:
