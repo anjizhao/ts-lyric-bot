@@ -19,6 +19,7 @@ Unidecode = "^1.2.0"
 matplotlib = "^3.3.4"
 pandas = "^1.2.3"
 flake8 = "^3.9.0"
+notebook = "^6.2.0"
 
 [tool.poetry.dev-dependencies]
 
