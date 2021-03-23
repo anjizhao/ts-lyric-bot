@@ -144,7 +144,7 @@ def write_songs_to_csv(
     songs: List[Song],
     filename: str,
     directory: str = DATA_DIR,
-) -> None:
+) -> str:
     assert len(songs) > 0
     file_path = '{}/{}_{}.csv'.format(directory, filename, int(time.time()))
     with open(file_path, 'w') as csvfile:
@@ -152,6 +152,7 @@ def write_songs_to_csv(
         writer.writeheader()
         for s in songs:
             writer.writerow(s._asdict())
+    return file_path
 
 
 def read_songs_from_csv(file_path: str) -> List[Song]:
@@ -171,7 +172,6 @@ def download_song_data() -> List[Song]:
     ''' fetch data from genius api, save data to file, return list of songs '''
     song_ids = get_all_song_ids(per_page=50)
     all_songs = load_songs(song_ids)
-    write_songs_to_csv(all_songs, 'all_songs')
     return all_songs
 
 
@@ -251,9 +251,14 @@ def download_all_lyrics(songs: List[Song]) -> None:
 
 if __name__ == '__main__':
     # all_songs = download_song_data()
-    # all_songs = read_songs_from_csv('data/all_songs_1615501842.csv')
+    # filename_all = write_songs_to_csv(all_songs, 'all_songs')
+    filename_all = 'data/all_songs_1615501842.csv'
+    all_songs = read_songs_from_csv(filename_all)
+
     # ts_songs = filter_ts_songs(all_songs)
-    # write_songs_to_csv(ts_songs, 'ts_songs')
-    ts_songs = read_songs_from_csv('data/ts_songs_1615501842.csv')
-    # download_all_lyrics(ts_songs)
+    # filename_ts = write_songs_to_csv(ts_songs, 'ts_songs')
+    filename_ts = 'data/ts_songs_1615501842.csv'
+    ts_songs = read_songs_from_csv(filename_ts)
+
+    download_all_lyrics(ts_songs)
     pass
