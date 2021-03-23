@@ -1,12 +1,9 @@
 
-import csv
 import glob
-import time
-from typing import Any, Dict, List, NamedTuple, Optional, Set
+from typing import List
 
 
 from sklearn.model_selection import train_test_split
-import tqdm
 
 
 def get_all_datapoints() -> List[str]:
