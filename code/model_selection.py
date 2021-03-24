@@ -9,9 +9,7 @@ from typing import Any, Dict, List, NamedTuple, Tuple
 from typing import Counter as CounterType
 
 import matplotlib.pyplot as plt
-from nltk.lm.models import (
-    LanguageModel, Lidstone, KneserNeyInterpolated,
-)
+from nltk.lm.models import LanguageModel, Lidstone, KneserNeyInterpolated
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold
@@ -22,23 +20,38 @@ from code.ngrams import MyNGram
 class LMDef(NamedTuple):
     # class & __init__ arguments for each model/hyperparameters we will test
     class_: LanguageModel
-    args: List[Any] = []
+    args: List[Any] = []  # args and kwargs for the nltk LanguageModel
     kwargs: Dict[str, Any] = dict()
+    evaluate_on_training_set: bool = True
+    # ^ do we want to test how the model performs on its training set
 
 
 test_orders = [2, 3, 4]
 
-# lidstone_test_alphas = [0.001, 0.01, 0.1, 1, 5]
-lidstone_test_alphas = np.linspace(0, .5, 11)[1:]  # 0-0.5 excluding 0
-# lidstone_test_alphas = np.linspace(0, 0.001, 11)[1:]  # 0-0.005 excluding 0
+lidstone_test_alphas = sorted(set(
+    np.concatenate((np.linspace(0, .005, 6), np.linspace(0, .001, 11)))
+))[1:]  # 0-0.005 excluding 0
+lidstone_test_alphas_simple = np.linspace(0, .005, 6)[1:]
 
-# kn_test_discounts = [0.001, 0.01, 0.1, 1]
-kn_test_discounts = np.linspace(0, 1, 11)[1:]  # 0-1 excluding 0
-# kn_test_discounts = np.linspace(0.1, 0.6, 11)  # 0.1-0.6 inclusive
+kn_test_discounts = sorted(set(
+    np.concatenate((
+        np.linspace(0, 1, 6),
+        np.linspace(0.41, 0.51, 11),
+        np.linspace(0.19, 0.29, 11),
+    ))
+))[1:]
+kn_test_discounts_simple = np.linspace(0, 1, 6)[1:]  # 0-1 excluding 0
+
+assert set(lidstone_test_alphas_simple).issubset(lidstone_test_alphas)
+assert set(kn_test_discounts_simple).issubset(kn_test_discounts)
 
 
 lidstone_models = [
-    LMDef(Lidstone, [alpha, order])
+    LMDef(
+        Lidstone,
+        [alpha, order],
+        evaluate_on_training_set=(alpha in lidstone_test_alphas_simple),
+    )
     for alpha in lidstone_test_alphas for order in test_orders
 ]
 
@@ -47,6 +60,7 @@ kn_models = [
         KneserNeyInterpolated,
         args=[order],
         kwargs={'discount': discount},
+        evaluate_on_training_set=(discount in kn_test_discounts_simple),
     )
     for discount in kn_test_discounts for order in test_orders
 ]
@@ -69,8 +83,10 @@ def kfold_validation_entropy(
 ) -> List[Dict[str, Any]]:
     results: List[Dict[str, Any]] = []
     dataset = np.array(dataset)
+
     for model_def in test_models:
         print('testing model', model_def)
+
         # want same train/test folds for each model
         kf = KFold(n_splits=n_splits, shuffle=True, random_state=2)
         train_entropies: List[float] = []
@@ -82,25 +98,27 @@ def kfold_validation_entropy(
             )
             train_indices, test_indices = split_indices
             train_set, test_set = dataset[train_indices], dataset[test_indices]
-            print('training', index)
+            print('training fold', index)
             model.train(raw_sentences=train_set)
             print('calculating entropies', index)
-            train_entropy = model.test_texts_avg_entropy(train_set)
+            train_entropy = None
+            if model_def.evaluate_on_training_set:
+                train_entropy = model.test_texts_avg_entropy(train_set)
+                train_entropies.append(train_entropy)
             test_entropy = model.test_texts_avg_entropy(test_set)
-            train_entropies.append(train_entropy)
             test_entropies.append(test_entropy)
-            print(
-                'fold {}: avg entropy train {:.4f}, test {:.4f}'.format(
-                    index, train_entropy, test_entropy,
-                )
-            )
+
         results.append({
             'model': model_def.class_.__name__,
             'args': model_def.args,
             'kwargs': model_def.kwargs,
-            'train_entropy_mean': mean(train_entropies),
+            'train_entropy_mean': (
+                mean(train_entropies) if train_entropies else None
+            ),
             'test_entropy_mean': mean(test_entropies),
-            'train_entropy_stdev': stdev(train_entropies),
+            'train_entropy_stdev': (
+                stdev(train_entropies) if train_entropies else None
+            ),
             'test_entropy_stdev': stdev(test_entropies),
         })
         print()
@@ -210,34 +228,29 @@ def plot_tuning_results_compare(
     plt.show()
 
 
-def compile_all_lidstone(
+def compile_all_to_df(path: str, index_columns: List[str]):
+    dfs = []
+    for filename in glob.glob(path):
+        df = read_csv_to_df(filename)
+        dfs.append(df)
+    return pd.concat(
+        dfs,
+        ignore_index=True,
+    ).drop_duplicates(
+        subset=index_columns, keep='last',
+    ).reset_index(drop=True)
+
+
+def compile_all_lidstone_to_df(
     path: str = 'data/model_selection_lidstone_*.csv',
 ) -> pd.DataFrame:
-    dfs = []
-    for lidstone_filename in glob.glob(path):
-        df = read_csv_to_df(lidstone_filename)
-        dfs.append(df)
-    return pd.concat(
-        dfs,
-        ignore_index=True,
-    ).drop_duplicates(
-        subset=['order', 'alpha'], keep='last',
-    ).reset_index(drop=True)
+    return compile_all_to_df(path, ['order', 'alpha'])
 
 
-def compile_all_kn(
+def compile_all_kn_to_df(
     path: str = 'data/model_selection_kn_*.csv',
 ) -> pd.DataFrame:
-    dfs = []
-    for kn_filename in glob.glob(path):
-        df = read_csv_to_df(kn_filename)
-        dfs.append(df)
-    return pd.concat(
-        dfs,
-        ignore_index=True,
-    ).drop_duplicates(
-        subset=['order', 'discount'], keep='last',
-    ).reset_index(drop=True)
+    return compile_all_to_df(path, ['order', 'discount'])
 
 
 def get_min_per_order(
@@ -262,8 +275,8 @@ if __name__ == '__main__':
 
     # lidstone_filename = 'data/model_selection_lidstone_1616176024.csv'
     # lidstone_df = read_csv_to_df(lidstone_filename)
-    lidstone_df = compile_all_lidstone()
-    # lidstone_df_old = compile_all_lidstone(
+    lidstone_df = compile_all_lidstone_to_df()
+    # lidstone_df_old = compile_all_lidstone_to_df(
     #     'data/model_selection_0/model_selection_lidstone_*.csv',
     # )
 
@@ -279,8 +292,8 @@ if __name__ == '__main__':
 
     # kn_filename = 'data/model_selection_kn_1616185500.csv'
     # kn_df = read_csv_to_df(kn_filename)
-    kn_df = compile_all_kn()
-    # kn_df_old = compile_all_kn(
+    kn_df = compile_all_kn_to_df()
+    # kn_df_old = compile_all_kn_to_df(
     #     'data/model_selection_0/model_selection_kn_*.csv',
     # )
     # plot_tuning_results(kn_df, 'kneser-ney', 'discount')
