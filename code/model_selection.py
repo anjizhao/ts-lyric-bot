@@ -5,7 +5,7 @@ import glob
 import random
 from statistics import mean, stdev
 import time
-from typing import Any, Dict, List, NamedTuple, Tuple
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 from typing import Counter as CounterType
 
 import matplotlib.pyplot as plt
@@ -13,6 +13,7 @@ from nltk.lm.models import LanguageModel, Lidstone, KneserNeyInterpolated
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold
+import tqdm
 
 from code.ngrams import MyNGram
 
@@ -29,7 +30,11 @@ class LMDef(NamedTuple):
 test_orders = [2, 3, 4]
 
 lidstone_test_alphas = sorted(set(
-    np.concatenate((np.linspace(0, .005, 6), np.linspace(0, .001, 11)))
+    np.concatenate((
+        np.linspace(0, .005, 6),
+        np.linspace(0, .001, 11),
+        np.linspace(.0035, .0045, 6),
+    ))
 ))[1:]  # 0-0.005 excluding 0
 lidstone_test_alphas_simple = np.linspace(0, .005, 6)[1:]
 
@@ -79,13 +84,21 @@ def get_train_set() -> List[str]:
 
 
 def kfold_validation_entropy(
-    test_models: List[LMDef], dataset=List[str], n_splits: int = 4,
+    test_models: List[LMDef],
+    dataset=List[str],
+    n_splits: int = 4,
+    progressbars: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
+
     results: List[Dict[str, Any]] = []
     dataset = np.array(dataset)
 
-    for model_def in test_models:
-        print('testing model', model_def)
+    for model_def in tqdm.tqdm(
+        test_models,
+        desc='test models entropy',
+        disable=(progressbars != 'outer'),
+    ):
+        # print('testing model', model_def)
 
         # want same train/test folds for each model
         kf = KFold(n_splits=n_splits, shuffle=True, random_state=2)
@@ -98,14 +111,18 @@ def kfold_validation_entropy(
             )
             train_indices, test_indices = split_indices
             train_set, test_set = dataset[train_indices], dataset[test_indices]
-            print('training fold', index)
+            # print('training fold', index)
             model.train(raw_sentences=train_set)
-            print('calculating entropies', index)
+            # print('calculating entropies', index)
             train_entropy = None
             if model_def.evaluate_on_training_set:
-                train_entropy = model.test_texts_avg_entropy(train_set)
+                train_entropy = model.test_texts_avg_entropy(
+                    train_set, show_progressbar=(progressbars == 'inner'),
+                )
                 train_entropies.append(train_entropy)
-            test_entropy = model.test_texts_avg_entropy(test_set)
+            test_entropy = model.test_texts_avg_entropy(
+                test_set, show_progressbar=(progressbars == 'inner'),
+            )
             test_entropies.append(test_entropy)
 
         results.append({
@@ -121,7 +138,7 @@ def kfold_validation_entropy(
             ),
             'test_entropy_stdev': stdev(test_entropies),
         })
-        print()
+
     return results
 
 
@@ -269,7 +286,7 @@ if __name__ == '__main__':
     training_corpus = get_train_set()
 
     # lidstone_results = kfold_validation_entropy(
-    #     lidstone_models, training_corpus, n_splits=4,
+    #     lidstone_models, training_corpus, n_splits=4, progressbars='inner',
     # )
     # lidstone_filename = write_lidstone_results_to_file(lidstone_results)
 
@@ -286,7 +303,7 @@ if __name__ == '__main__':
     # plot_tuning_results_compare(lidstone_df_old, lidstone_df)
 
     # kn_results = kfold_validation_entropy(
-    #     kn_models, training_corpus, n_splits=4,
+    #     kn_models, training_corpus, n_splits=4, progressbars='inner',
     # )
     # kn_filename = write_kn_results_to_file(kn_results)
 

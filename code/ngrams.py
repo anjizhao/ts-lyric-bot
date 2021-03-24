@@ -111,10 +111,12 @@ class MyNGram:
         return self.model.perplexity(test_grams)
 
 
-    def test_texts_avg_entropy(self, texts: List[str]) -> float:
+    def test_texts_avg_entropy(
+        self, texts: List[str], show_progressbar: bool = True,
+    ) -> float:
         ''' returns average entropy across test texts '''
         entropies = []
-        for s in tqdm.tqdm(texts):
+        for s in tqdm.tqdm(texts, disable=(not show_progressbar)):
             entropies.append(self.test_text_entropy(s))
         return mean(entropies)
 
