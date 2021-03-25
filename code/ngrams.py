@@ -121,11 +121,6 @@ class MyNGram:
         return mean(entropies)
 
 
-    # def generate(self, num_words=1):
-    #     text_seed = [self.start_token] * (self.model.order - 1)
-    #     return self._generate(num_words, text_seed=text_seed)
-
-
     def generate(self, num_words=1, text_seed=None, random_seed=None):
         '''
         generate sentence from model. this is mostly copied from the
