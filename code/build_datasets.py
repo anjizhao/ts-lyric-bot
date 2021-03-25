@@ -3,19 +3,33 @@ import glob
 from typing import List
 
 
+from nltk.tokenize import sent_tokenize
 from sklearn.model_selection import train_test_split
 
 
-def get_all_datapoints() -> List[str]:
+def get_all_datapoints(
+    filepath: str = 'data/lyrics/*/*',
+    combine_paragraphs=False,
+) -> List[str]:
     song_lines: List[str] = []
-    for lyrics_filename in glob.glob('data/lyrics/*/*'):
+    for lyrics_filename in glob.glob(filepath):
         with open(lyrics_filename, 'r') as lyrics_file:
             text = lyrics_file.read().strip()
-            lines = text.split('\n')
-            for line in lines:
-                if line and not line.startswith('['):
-                    song_lines.append(line)
-    return song_lines
+            paragraphs = text.split('\n\n')
+            for p in paragraphs:
+                lines = p.split('\n')
+                lines = [
+                    line for line in lines
+                    if line and not line.startswith('[')
+                ]
+                if combine_paragraphs:
+                    song_lines.append(' '.join(lines))
+                else:
+                    song_lines.extend(lines)
+    sent_tokenized = [
+        sent for line in song_lines for sent in sent_tokenize(line)
+    ]
+    return sent_tokenized
 
 
 def write_to_file(dataset: List[str], filename: str) -> None:

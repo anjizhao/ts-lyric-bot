@@ -60,6 +60,9 @@ _api_session.headers.update(
 _web_session = requests.Session()
 
 
+INT_SONG_KEYS = ['song_id', 'album_id', 'artist_id', 'is_cover', 'ts_written']
+
+
 class Song(NamedTuple):
     song_id: int
     album_id: Optional[int]
@@ -68,6 +71,8 @@ class Song(NamedTuple):
     album_name: Optional[str]
     artist_name: Optional[str]
     url: str
+    is_cover: Optional[int]
+    ts_written: Optional[int]
 
 
 def genius_get(
@@ -114,6 +119,23 @@ def _safe_clean_str(input_: Optional[str]) -> str:
     return unidecode(input_.replace('\u200b', '')).strip()
 
 
+def _covered_artist(song_relationships: List[Dict]) -> Optional[int]:
+    ''' return covered artist's genius id '''
+    for item in song_relationships:
+        if item.get('relationship_type') == 'cover_of':
+            if item.get('songs'):
+                return item['songs'][0].get('primary_artist', {}).get('id')
+    return None
+
+
+def _ts_written(writer_artists: List[Dict]) -> bool:
+    ''' is ts one of the writer_artists? '''
+    for item in writer_artists:
+        if item.get('id') == GENIUS_ARTIST_ID:
+            return True
+    return False
+
+
 def get_song_data(song_id: int) -> Song:
     data: Dict[str, Dict] = genius_get(
         '/songs/{}'.format(song_id),
@@ -122,6 +144,14 @@ def get_song_data(song_id: int) -> Song:
     song_data = data['song']
     album = song_data.get('album') or {}
     primary_artist = song_data.get('primary_artist') or {}
+
+    song_relationships = song_data.get('song_relationships') or []
+    covered_artist_id = _covered_artist(song_relationships)
+    is_cover = 1 if covered_artist_id is not None else 0
+
+    writer_artists = song_data.get('writer_artists') or []
+    ts_written = 1 if _ts_written(writer_artists) else 0
+
     return Song(
         song_id=song_id,
         song_title=_safe_clean_str(song_data.get('title')),
@@ -130,6 +160,8 @@ def get_song_data(song_id: int) -> Song:
         artist_id=primary_artist.get('id'),
         artist_name=_safe_clean_str(primary_artist.get('name')),
         url=song_data['url'],  # assuming this key always exists....
+        is_cover=is_cover,
+        ts_written=ts_written,
     )
 
 
@@ -161,7 +193,7 @@ def read_songs_from_csv(file_path: str) -> List[Song]:
         reader = csv.DictReader(csvfile)
         for row in reader:
             for k, v in row.items():
-                if v.isdigit() and k.endswith('_id'):
+                if v.isdigit() and (k in INT_SONG_KEYS):
                     # convert ids back to numbers
                     row[k] = int(v)  # type: ignore
             songs.append(Song(**row))  # type: ignore
@@ -205,6 +237,22 @@ def filter_ts_songs(all_songs: List[Song]) -> List[Song]:
     return [s for s in all_songs if valid_ts(s)]
 
 
+def categorize_ts_adjacent(songs: List[Song]) -> List[Song]:
+    ts_adjacent = set()
+    for s in songs:
+        print(s)
+        keep = input('keep? (y/Y for yes) ')
+        if 'y' in keep:
+            ts_adjacent.add(s)
+    return sorted(ts_adjacent, key=lambda s: s.song_id)
+
+
+def _is_cover_of_ts(s: Song) -> bool:
+    if s.is_cover and s.ts_written:
+        return True
+    return False
+
+
 def fetch_lyrics(url: str) -> str:
     res = _web_session.get(url)
     res.raise_for_status()
@@ -232,33 +280,52 @@ def _standardize_album_name(album_name: Optional[str]) -> str:
     return 'Other'
 
 
-def download_lyrics(song: Song) -> None:
+def download_lyrics(
+    song: Song,
+    album: Optional[str] = None,
+    lyrics_foldername: Optional[str] = 'lyrics',
+) -> None:
     ''' scrape song url for lyrics and write them to a text file. '''
-    album = _standardize_album_name(song.album_name)
+    if not album:
+        album = _standardize_album_name(song.album_name)
     directory_name = '{}/lyrics/{}'.format(DATA_DIR, album)
     os.makedirs(directory_name, exist_ok=True)  # make sure directory exists
-    file_path = '{}/{}.txt'.format(directory_name, song.song_title)
+    file_path = '{}/{}.txt'.format(
+        directory_name,
+        song.song_title.replace('/', ' '),  # remove slashes from titles!
+    )
     lyrics = fetch_lyrics(song.url)
     with open(file_path, 'w') as txtfile:
         txtfile.write(_safe_clean_str(lyrics))
 
 
-def download_all_lyrics(songs: List[Song]) -> None:
+def download_all_lyrics(
+    songs: List[Song],
+    album: Optional[str] = None,
+    lyrics_foldername: Optional[str] = 'lyrics',
+) -> None:
     for song in tqdm.tqdm(songs, desc='download_all_lyrics'):
-        download_lyrics(song)
+        download_lyrics(song, album=album, lyrics_foldername=lyrics_foldername)
         time.sleep(1)  # bein extra conservative with the scraping :zany:
 
 
 if __name__ == '__main__':
     # all_songs = download_song_data()
     # filename_all = write_songs_to_csv(all_songs, 'all_songs')
-    filename_all = 'data/all_songs_1615501842.csv'
+    filename_all = 'data/all_songs_1616618602.csv'
     all_songs = read_songs_from_csv(filename_all)
 
     # ts_songs = filter_ts_songs(all_songs)
     # filename_ts = write_songs_to_csv(ts_songs, 'ts_songs')
-    filename_ts = 'data/ts_songs_1615501842.csv'
+    filename_ts = 'data/ts_songs_1616618603.csv'
     ts_songs = read_songs_from_csv(filename_ts)
-
     download_all_lyrics(ts_songs)
-    pass
+
+    filename_ts_adjacent = 'data/ts_adjacent_1616620976.csv'
+    ts_adjacent = read_songs_from_csv(filename_ts_adjacent)
+    download_all_lyrics(
+        ts_adjacent,
+        album='ts_adjacent',
+        lyrics_foldername='lyrics_adjacent',
+    )
+

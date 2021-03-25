@@ -121,6 +121,11 @@ class MyNGram:
         return mean(entropies)
 
 
+    # def generate(self, num_words=1):
+    #     text_seed = [self.start_token] * (self.model.order - 1)
+    #     return self._generate(num_words, text_seed=text_seed)
+
+
     def generate(self, num_words=1, text_seed=None, random_seed=None):
         '''
         generate sentence from model. this is mostly copied from the
@@ -157,11 +162,12 @@ class MyNGram:
                 samples = self.model.context_counts(
                     self.model.vocab.lookup(context)
                 )
+            samples = sorted(samples)
             # Sorting samples achieves two things:
             # - reproducible randomness when sampling
             # - turns Mapping into Sequence which `_weighted_choice` expects
             return _weighted_choice(
-                sorted(samples),
+                samples,
                 tuple(self.model.score(w, context) for w in samples),
                 random_generator,
             )
