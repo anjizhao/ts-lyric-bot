@@ -87,12 +87,21 @@ class MyNGram:
     def train(
         self,
         raw_sentences: List[str],
+        update_vocab: bool = False,
     ) -> None:
         tokenized_sentences = self.tokenize_sentences(raw_sentences)
         training_data = (self.make_grams(s) for s in tokenized_sentences)
         # create a new iterator bc the last one is done!
         tokenized_sentences = self.tokenize_sentences(raw_sentences)
         vocab = list(flatten(tokenized_sentences))
+        if update_vocab and self.model.vocab:
+            # in the original nltk code, we can call model.fit() multiple times
+            # with different sets of training data, but the vocabulary is only
+            # set once, on the first call. subsequent calls skip the vocab
+            # update because model.vocab already exists. i want to also add new
+            # words to the vocab when i fit additional data.
+            self.model.vocab.update(vocab)
+            # ^ this is the same line of code from the original to set vocab
         self.model.fit(training_data, vocab)
 
 

@@ -33,6 +33,9 @@ def main():
     ts_data_edited = get_all_lyrics_from_file(
         'data/lyrics_dataset_raw_edited.txt',
     )
+    ts_data_long = get_all_lyrics_from_file(
+        'data/lyrics_dataset_raw_long_1616624542.txt',
+    )
     adj_data = get_all_lyrics_from_file(
         'data/lyrics_dataset_raw_adjacent_1616638438.txt',
     )
@@ -41,7 +44,7 @@ def main():
         model_def.class_(*model_def.args, **model_def.kwargs),
     )
     model.train(
-        ts_data + ts_data_edited + adj_data
+        ts_data + ts_data_long + adj_data
     )
     generated = model.generate(30)
     print(detokenizer.detokenize(generated))
