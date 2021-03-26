@@ -81,3 +81,4 @@ data/*.csv
 data/**/*.csv
 data/*.txt
 data/**/*.txt
+data/**/*.json
