@@ -290,10 +290,9 @@ def download_lyrics(
         album = _standardize_album_name(song.album_name)
     directory_name = '{}/lyrics/{}'.format(DATA_DIR, album)
     os.makedirs(directory_name, exist_ok=True)  # make sure directory exists
-    file_path = '{}/{}.txt'.format(
-        directory_name,
-        song.song_title.replace('/', ' '),  # remove slashes from titles!
-    )
+    # remove slashes from titles!
+    song_title = song.song_title.replace('/', ' ') if song.song_title else ''
+    file_path = '{}/{}.txt'.format(directory_name, song_title)
     lyrics = fetch_lyrics(song.url)
     with open(file_path, 'w') as txtfile:
         txtfile.write(_safe_clean_str(lyrics))

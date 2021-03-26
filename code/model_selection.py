@@ -1,28 +1,27 @@
 
 import csv
 import glob
-import random
 from statistics import mean, stdev
 import time
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+from typing import Any, Dict, List, NamedTuple, Optional
 
 import matplotlib.pyplot as plt
-from nltk.lm.models import LanguageModel, Lidstone, KneserNeyInterpolated
+from nltk.lm.models import Lidstone, KneserNeyInterpolated
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold
 import tqdm
 
 from code.ngrams import MyNGram
+from code.save_utils import LMDef
 
 
-class LMDef(NamedTuple):
-    # class & __init__ arguments for each model/hyperparameters we will test
-    class_: LanguageModel
-    args: List[Any] = []  # args and kwargs for the nltk LanguageModel
-    kwargs: Dict[str, Any] = dict()
+# LMDef, but with any additional parameters for testing purposes
+class LMTestDef(NamedTuple):
+    # definition for the LanguageModel to test (incl hyperparameters)
+    model_def: LMDef
+    # do we want to test how the model performs on its training set
     evaluate_on_training_set: bool = True
-    # ^ do we want to test how the model performs on its training set
 
 
 test_orders = [2, 3, 4]
@@ -50,19 +49,23 @@ assert set(kn_test_discounts_simple).issubset(kn_test_discounts)
 
 
 lidstone_models = [
-    LMDef(
-        Lidstone,
-        [alpha, order],
+    LMTestDef(
+        LMDef(
+            Lidstone,
+            args=[alpha, order],
+        ),
         evaluate_on_training_set=(alpha in lidstone_test_alphas_simple),
     )
     for alpha in lidstone_test_alphas for order in test_orders
 ]
 
 kn_models = [
-    LMDef(
-        KneserNeyInterpolated,
-        args=[order],
-        kwargs={'discount': discount},
+    LMTestDef(
+        LMDef(
+            KneserNeyInterpolated,
+            args=[order],
+            kwargs={'discount': discount},
+        ),
         evaluate_on_training_set=(discount in kn_test_discounts_simple),
     )
     for discount in kn_test_discounts for order in test_orders
@@ -82,13 +85,9 @@ def get_test_set() -> List[str]:
         lines = [line.strip() for line in lines if line]
     return lines
 
-# we are gona try models with Laplace, Lidstone, and Kneser-Ney
-# smoothing bc those are the ones nltk provides :shrug:.
-
-
 
 def kfold_validation_entropy(
-    test_models: List[LMDef],
+    test_models: List[LMTestDef],
     dataset=List[str],
     n_splits: int = 4,
     progressbars: Optional[str] = None,
@@ -97,11 +96,12 @@ def kfold_validation_entropy(
     results: List[Dict[str, Any]] = []
     dataset = np.array(dataset)
 
-    for model_def in tqdm.tqdm(
+    for model_test_def in tqdm.tqdm(
         test_models,
         desc='test models entropy',
         disable=(progressbars != 'outer'),
     ):
+        model_def = model_test_def.model_def
         # print('testing model', model_def)
 
         # want same train/test folds for each model
@@ -119,7 +119,7 @@ def kfold_validation_entropy(
             model.train(raw_sentences=train_set)
             # print('calculating entropies', index)
             train_entropy = None
-            if model_def.evaluate_on_training_set:
+            if model_test_def.evaluate_on_training_set:
                 train_entropy = model.test_texts_avg_entropy(
                     train_set, show_progressbar=(progressbars == 'inner'),
                 )

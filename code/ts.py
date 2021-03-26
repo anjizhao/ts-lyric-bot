@@ -1,15 +1,15 @@
 # THIS IS A DRAFT / NOTES
 
-import time
 from typing import List
 
 from nltk.lm.models import (
-    LanguageModel, Lidstone, KneserNeyInterpolated,
+    LanguageModel, Lidstone, KneserNeyInterpolated,  # noqa
 )
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 
 from code.ngrams import MyNGram
 from code.model_selection import LMDef
+from code.save_utils import save_model, load_model
 
 
 detokenizer = TreebankWordDetokenizer()
@@ -47,6 +47,11 @@ def main():
         ts_data + ts_data_long + adj_data
     )
     generated = model.generate(30)
+    print(detokenizer.detokenize(generated))
+
+    filename = save_model(model.model, model_def, 'kn_ts_tslong_adj')
+    loaded_model = MyNGram(load_model(filename))
+    generated = loaded_model.generate(30)
     print(detokenizer.detokenize(generated))
 
 
