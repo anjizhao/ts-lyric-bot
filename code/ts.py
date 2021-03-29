@@ -43,16 +43,16 @@ def main():
     model = MyNGram(
         model_def.class_(*model_def.args, **model_def.kwargs),
     )
-    model.train(
-        ts_data + ts_data_long + adj_data
-    )
-    generated = model.generate(30)
-    print(detokenizer.detokenize(generated))
+    model.train(ts_data)
+    model.train(ts_data_edited)
+    model.train(ts_data_long)
+    model.train(adj_data, update_vocab=True)
+    print(model.generate_sentence())
 
-    filename = save_model(model.model, model_def, 'kn_ts_tslong_adj')
+    filename = save_model(model.model, model_def, 'kn_ts_edited_adj')
+    print(filename)
     loaded_model = MyNGram(load_model(filename))
-    generated = loaded_model.generate(30)
-    print(detokenizer.detokenize(generated))
+    print(loaded_model.generate_sentence())
 
 
 if __name__ == '__main__':

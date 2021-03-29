@@ -3,12 +3,13 @@
 
 from functools import partial
 from statistics import mean
-from typing import Iterator, List, Optional
+from typing import Iterator, List
 
 from nltk.lm.api import _random_generator, _weighted_choice
 from nltk.lm.models import LanguageModel, Laplace
 from nltk.lm.preprocessing import flatten, pad_both_ends
 from nltk.tokenize import word_tokenize
+from nltk.tokenize.treebank import TreebankWordDetokenizer
 from nltk.util import everygrams
 import tqdm
 
@@ -23,6 +24,9 @@ We're driving down the road, I wonder if you know
 I'm trying so hard not to get caught up now
 But you're just so cool, run your hands through your hair
 Absent-mindedly making me want you'''
+
+
+detokenizer = TreebankWordDetokenizer()
 
 
 class MyNGram:
@@ -189,6 +193,11 @@ class MyNGram:
             generated.append(word)
 
         return generated
+
+    def generate_sentence(self, max_words: int = 30) -> str:
+        generated = self.generate(max_words)
+        return detokenizer.detokenize(generated)
+
 
 
 
