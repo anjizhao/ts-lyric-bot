@@ -907,6 +907,14 @@ ipython-genutils = "*"
 test = ["pytest"]
 
 [[package]]
+name = "twitter"
+version = "1.18.0"
+description = "An API and command-line toolset for Twitter (twitter.com)"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "typed-ast"
 version = "1.4.2"
 description = "a fork of Python 2 and 3 ast modules with type comment support"
@@ -962,7 +970,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "5ab0eb8eac1d04c31088ac5c86d59d54d7d310ede8a460b78d122cd9e909295d"
+content-hash = "d0d697f8046c7560bfa270e7f7d68ae3743777d769c5bdc2b2b34459aa234a9d"
 
 [metadata.files]
 appnope = [
@@ -1683,6 +1691,10 @@ tqdm = [
 traitlets = [
     {file = "traitlets-5.0.5-py3-none-any.whl", hash = "sha256:69ff3f9d5351f31a7ad80443c2674b7099df13cc41fc5fa6e2f6d3b0330b0426"},
     {file = "traitlets-5.0.5.tar.gz", hash = "sha256:178f4ce988f69189f7e523337a3e11d91c786ded9360174a3d9ca83e79bc5396"},
+]
+twitter = [
+    {file = "twitter-1.18.0-py2.py3-none-any.whl", hash = "sha256:52545fd3b70d3d3807d3ce62d1a256727856d784d1630d64dedcc643aaf0b908"},
+    {file = "twitter-1.18.0.tar.gz", hash = "sha256:acdc85e5beea752967bb64c63bde8b915c49a31a01db1b2fecccf9f2c1d5c44d"},
 ]
 typed-ast = [
     {file = "typed_ast-1.4.2-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:7703620125e4fb79b64aa52427ec192822e9f45d37d4b6625ab37ef403e1df70"},
