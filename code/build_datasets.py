@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 def get_all_datapoints(
     filepath: str = 'data/lyrics/*/*',
     combine_paragraphs=False,
+    separate_songs=False,
 ) -> List[str]:
     song_lines: List[str] = []
     for lyrics_filename in glob.glob(filepath):
@@ -26,6 +27,8 @@ def get_all_datapoints(
                     song_lines.append(' '.join(lines))
                 else:
                     song_lines.extend(lines)
+            if separate_songs:
+                song_lines.append('--')
     sent_tokenized = [
         sent for line in song_lines for sent in sent_tokenize(line)
     ]

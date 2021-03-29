@@ -288,7 +288,7 @@ def download_lyrics(
     ''' scrape song url for lyrics and write them to a text file. '''
     if not album:
         album = _standardize_album_name(song.album_name)
-    directory_name = '{}/lyrics/{}'.format(DATA_DIR, album)
+    directory_name = '{}/{}/{}'.format(DATA_DIR, lyrics_foldername, album)
     os.makedirs(directory_name, exist_ok=True)  # make sure directory exists
     # remove slashes from titles!
     song_title = song.song_title.replace('/', ' ') if song.song_title else ''
@@ -309,22 +309,30 @@ def download_all_lyrics(
 
 
 if __name__ == '__main__':
-    # all_songs = download_song_data()
-    # filename_all = write_songs_to_csv(all_songs, 'all_songs')
-    filename_all = 'data/all_songs_1616618602.csv'
-    all_songs = read_songs_from_csv(filename_all)
+    # # all_songs = download_song_data()
+    # # filename_all = write_songs_to_csv(all_songs, 'all_songs')
+    # filename_all = 'data/all_songs_1616618602.csv'
+    # all_songs = read_songs_from_csv(filename_all)
 
-    # ts_songs = filter_ts_songs(all_songs)
-    # filename_ts = write_songs_to_csv(ts_songs, 'ts_songs')
-    filename_ts = 'data/ts_songs_1616618603.csv'
-    ts_songs = read_songs_from_csv(filename_ts)
-    download_all_lyrics(ts_songs)
+    # # ts_songs = filter_ts_songs(all_songs)
+    # # filename_ts = write_songs_to_csv(ts_songs, 'ts_songs')
+    # filename_ts = 'data/ts_songs_1616618603.csv'
+    # ts_songs = read_songs_from_csv(filename_ts)
+    # download_all_lyrics(ts_songs)
 
-    filename_ts_adjacent = 'data/ts_adjacent_1616620976.csv'
+    filename_ts_adjacent = 'data/ts_adjacent_1617059623.csv'
     ts_adjacent = read_songs_from_csv(filename_ts_adjacent)
     download_all_lyrics(
         ts_adjacent,
         album='ts_adjacent',
         lyrics_foldername='lyrics_adjacent',
     )
+
+    # filename_songs_taylor_loves = 'data/songs_taylor_loves_1617056714.csv'
+    # songs_taylor_loves = read_songs_from_csv(filename_songs_taylor_loves)
+    # download_all_lyrics(
+    #     songs_taylor_loves,
+    #     album='songs_taylor_loves',
+    #     lyrics_foldername='lyrics_adjacent',
+    # )
 
