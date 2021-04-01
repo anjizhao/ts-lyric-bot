@@ -1,21 +1,16 @@
-# THIS IS A DRAFT / NOTES
 
 from typing import List
 
-from nltk.lm.models import (
-    LanguageModel, Lidstone, KneserNeyInterpolated,  # noqa
-)
-from nltk.tokenize.treebank import TreebankWordDetokenizer
+from nltk.lm.models import LanguageModel, Lidstone, KneserNeyInterpolated  # noqa
 
-from code.ngrams import MyNGram
 from code.model_selection import LMDef
+from code.ngrams import MyNGram
 from code.save_utils import save_model, load_model
 
 
-detokenizer = TreebankWordDetokenizer()
-
 model_def = LMDef(KneserNeyInterpolated, [3], {'discount': 0.42})
 # model_def = LMDef(Lidstone, [0.0006, 3])
+
 
 def get_all_lyrics_from_file(
     filename: str,
@@ -57,4 +52,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

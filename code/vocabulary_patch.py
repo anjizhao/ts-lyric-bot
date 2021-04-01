@@ -1,6 +1,7 @@
 
 from nltk.lm.vocabulary import Vocabulary
 
+
 def __len__(self):
     """
     a more efficient version of nltk's Vocabulary.__len__ to monkey-patch in.

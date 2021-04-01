@@ -82,21 +82,6 @@ def un_jsonproof_dict(d: Dict) -> Dict:
         }
 
 
-# def remap_keys(d: Dict[Any, Any]) -> List[Dict[str, Any]]:
-#     remapped = [
-#         {'key': k, 'value': v}
-#         for k, v in d.items()
-#     ]
-#     return remapped
-
-
-# def unremap_keys(items_list: List[Dict[str, Any]]) -> Dict[Any, Any]:
-#     unmapped = {
-#         i['key']: i['value'] for i in items_list
-#     }
-#     return unmapped
-
-
 def vocab_to_dict(vocab: Vocabulary) -> Dict[str, int]:
     c = vocab.counts  # this is a Counter object
     return dict(c)

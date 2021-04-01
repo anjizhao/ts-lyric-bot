@@ -1,23 +1,18 @@
 
 from collections import Counter
-import csv
 import glob
 import random
-from statistics import mean, stdev
-import time
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 from typing import Counter as CounterType
 
 import matplotlib.pyplot as plt
-from nltk.lm.models import LanguageModel, Lidstone, KneserNeyInterpolated
+from nltk.lm.models import Lidstone, KneserNeyInterpolated
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold
-import tqdm
 
 from code.model_selection import LMDef
 from code.ngrams import MyNGram
-
 
 
 '''

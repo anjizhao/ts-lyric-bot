@@ -1,6 +1,4 @@
 
-#
-
 from functools import partial
 from statistics import mean
 from typing import Iterator, List
@@ -202,4 +200,3 @@ if __name__ == '__main__':
     print(ngram_a.generate(10))
     print(ngram_b.generate(10))
     print(ngram_c.generate(10))
-
