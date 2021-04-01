@@ -14,18 +14,6 @@ from nltk.util import everygrams
 import tqdm
 
 
-test_text = '''There's something 'bout the way
-The street looks when it's just rained
-There's a glow off the pavement, you walk me to the car
-And you know I wanna ask you to dance right there
-In the middle of the parking lot, yeah
-Oh, yeah
-We're driving down the road, I wonder if you know
-I'm trying so hard not to get caught up now
-But you're just so cool, run your hands through your hair
-Absent-mindedly making me want you'''
-
-
 detokenizer = TreebankWordDetokenizer()
 
 
@@ -200,28 +188,16 @@ class MyNGram:
 
 
 
-
 if __name__ == '__main__':
-    ngram_a = MyNGram(Laplace(1), include_lower_order_grams=False)
-    ngram_b = MyNGram(Laplace(2), include_lower_order_grams=False)
-    ngram_c = MyNGram(Laplace(3), include_lower_order_grams=False)
+
+    test_text = "There's something 'bout the way\nThe street looks when it's just rained\nThere's a glow off the pavement, you walk me to the car\nAnd you know I wanna ask you to dance right there\nIn the middle of the parking lot, yeah\nOh, yeah\nWe're driving down the road, I wonder if you know\nI'm trying so hard not to get caught up now\nBut you're just so cool, run your hands through your hair\nAbsent-mindedly making me want you"  # noqa
+
+    ngram_a = MyNGram(Laplace(1))
+    ngram_b = MyNGram(Laplace(2))
+    ngram_c = MyNGram(Laplace(3))
 
     for ngram in (ngram_a, ngram_b, ngram_c):
         ngram.train(raw_sentences=test_text.strip().split('\n'))
-
-    # test_strings = [
-    #     "The street looks when it's just rained",
-    #     'Something about the way my street looks?',
-    #     'i am Taylor Alison Swift and i love CATS!',
-    #     'asdfasdf jlkdfjk asdf; ',
-    #     "I wanna stay right here, in this passenger's seat",
-    # ]
-    # for test_str in test_strings:
-    #     print('test str:', test_str)
-    #     print('ngram_a entropy: {:.4f}'.format(ngram_a.test_text_entropy(test_str)))  # noqa
-    #     print('ngram_b entropy: {:.4f}'.format(ngram_b.test_text_entropy(test_str)))  # noqa
-    #     print('ngram_c entropy: {:.4f}'.format(ngram_c.test_text_entropy(test_str)))  # noqa
-    #     print('')
 
     print(ngram_a.generate(10))
     print(ngram_b.generate(10))

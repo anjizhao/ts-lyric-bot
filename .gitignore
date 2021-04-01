@@ -83,3 +83,7 @@ data/*.txt
 data/**/*.txt
 data/**/*.json
 data/figures/*
+
+
+# personal notes/snippets
+snippets/*
