@@ -82,3 +82,4 @@ data/**/*.csv
 data/*.txt
 data/**/*.txt
 data/**/*.json
+data/figures/*
