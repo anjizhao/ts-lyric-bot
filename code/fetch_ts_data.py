@@ -23,7 +23,7 @@ DATA_DIR = 'data'
 ALLOWED_ALBUM_IDS = {
     10982, 12682, 12731, 39005, 39094, 87979, 110728, 152556, 313068, 335029,
     350177, 350247, 361954, 463904, 520929, 545561, 597875, 597883, 621286,
-    628059, 659925, 659926, 710140, 726425,
+    628059, 659925, 659926, 710140, 726425, 734107,
 }
 
 OVERRIDE_INCLUDE_SONG_IDS = {
@@ -33,12 +33,13 @@ OVERRIDE_INCLUDE_SONG_IDS = {
 
 OVERRIDE_EXCLUDE_SONG_IDS = {
     5077615, 5114093, 3331438, 187340, 1953921, 1983447, 186824, 186846,
-    186852, 186870, 4969382
+    186852, 186870, 4969382,
 }
 
 TS_ALBUM_NAMES = [
     'The Taylor Swift Holiday Collection',  # check this before 'Taylor Swift'
     'Taylor Swift',
+    "Fearless (Taylor's Version)",
     'Fearless',
     'Speak Now',
     'Red',
@@ -309,10 +310,10 @@ def download_all_lyrics(
 
 
 if __name__ == '__main__':
-    # # all_songs = download_song_data()
-    # # filename_all = write_songs_to_csv(all_songs, 'all_songs')
-    # filename_all = 'data/all_songs_1616618602.csv'
-    # all_songs = read_songs_from_csv(filename_all)
+    # all_songs = download_song_data()
+    # filename_all = write_songs_to_csv(all_songs, 'all_songs')
+    filename_all = 'data/all_songs_1617649557.csv'
+    all_songs = read_songs_from_csv(filename_all)
 
     # # ts_songs = filter_ts_songs(all_songs)
     # # filename_ts = write_songs_to_csv(ts_songs, 'ts_songs')
@@ -320,13 +321,13 @@ if __name__ == '__main__':
     # ts_songs = read_songs_from_csv(filename_ts)
     # download_all_lyrics(ts_songs)
 
-    filename_ts_adjacent = 'data/ts_adjacent_1617059623.csv'
-    ts_adjacent = read_songs_from_csv(filename_ts_adjacent)
-    download_all_lyrics(
-        ts_adjacent,
-        album='ts_adjacent',
-        lyrics_foldername='lyrics_adjacent',
-    )
+    # filename_ts_adjacent = 'data/ts_adjacent_1617059623.csv'
+    # ts_adjacent = read_songs_from_csv(filename_ts_adjacent)
+    # download_all_lyrics(
+    #     ts_adjacent,
+    #     album='ts_adjacent',
+    #     lyrics_foldername='lyrics_adjacent',
+    # )
 
     # filename_songs_taylor_loves = 'data/songs_taylor_loves_1617056714.csv'
     # songs_taylor_loves = read_songs_from_csv(filename_songs_taylor_loves)

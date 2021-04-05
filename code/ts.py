@@ -23,16 +23,16 @@ def get_all_lyrics_from_file(
 
 def main():
     ts_data = get_all_lyrics_from_file(
-        'data/lyrics_dataset_raw_1615587261.txt',
+        'data/lyrics_dataset_raw_1617652090.txt',
     )
     ts_data_edited = get_all_lyrics_from_file(
         'data/lyrics_dataset_raw_edited.txt',
     )
     ts_data_long = get_all_lyrics_from_file(
-        'data/lyrics_dataset_raw_long_1616624542.txt',
+        'data/lyrics_dataset_raw_long_1617652112.txt',
     )
     adj_data = get_all_lyrics_from_file(
-        'data/lyrics_dataset_raw_adjacent_1616638438.txt',
+        'data/lyrics_dataset_raw_adj_long_1617654229.txt',
     )
 
     model = MyNGram(
@@ -44,7 +44,7 @@ def main():
     model.train(adj_data, update_vocab=True)
     print(model.generate_sentence())
 
-    filename = save_model(model.model, model_def, 'kn_ts_edited_adj')
+    filename = save_model(model.model, model_def, 'kn3_all_new')
     print(filename)
     loaded_model = MyNGram(load_model(filename))
     print(loaded_model.generate_sentence())
