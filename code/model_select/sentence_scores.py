@@ -11,8 +11,8 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold
 
-from code.model_selection import LMDef
 from code.ngrams import MyNGram
+from code.save_utils import LMDef
 
 
 '''

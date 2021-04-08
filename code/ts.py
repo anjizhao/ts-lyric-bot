@@ -3,9 +3,8 @@ from typing import List
 
 from nltk.lm.models import LanguageModel, Lidstone, KneserNeyInterpolated  # noqa
 
-from code.model_selection import LMDef
 from code.ngrams import MyNGram
-from code.save_utils import save_model, load_model
+from code.save_utils import LMDef, load_model, save_model
 
 
 model_def = LMDef(KneserNeyInterpolated, [3], {'discount': 0.42})

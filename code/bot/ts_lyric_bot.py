@@ -1,5 +1,5 @@
 
-from code.bot_tweet import post_tweet
+from code.bot.bot_tweet import post_tweet
 from code.ngrams import MyNGram
 
 from code.save_utils import load_model
