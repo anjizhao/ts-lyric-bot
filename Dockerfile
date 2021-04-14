@@ -4,7 +4,9 @@ FROM python:3.8-slim
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
     curl \
-    build-essential
+    build-essential \
+    mailutils \
+    vim
 
 ENV POETRY_VERSION=1.1.4 \
     POETRY_HOME="/usr/poetry"
