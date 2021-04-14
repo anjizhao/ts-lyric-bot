@@ -21,7 +21,7 @@ GENIUS_ARTIST_ID = 1177
 DATA_DIR = 'data'
 
 ALLOWED_ALBUM_IDS = {
-    10982, 12682, 12731, 39005, 39094, 87979, 110728, 152556, 313068, 335029,
+    10982, 12682, 39005, 39094, 87979, 110728, 152556, 313068, 335029,
     350177, 350247, 361954, 463904, 520929, 545561, 597875, 597883, 621286,
     628059, 659925, 659926, 710140, 726425, 734107,
 }
@@ -222,6 +222,8 @@ def valid_ts(s: Song) -> bool:
         return False
 
     song_title = s.song_title.lower()
+    if "taylor's version" in song_title:
+        return True
     if ('[' in song_title) and (']' in song_title):
         return False
     if 'remix' in song_title:
@@ -273,8 +275,6 @@ def _standardize_album_name(album_name: Optional[str]) -> str:
                 return known_name
         if album_name == '2004-2005 Demo CD':
             return 'Taylor Swift'  # a couple of songs are wrongly labeled...
-        if album_name == 'Stripped: Raw & Real':
-            return 'Fearless'  # Untouchable is wrongly labeled
         if album_name == '2003 Demo CD':
             return 'The Taylor Swift Holiday Collection'
 
@@ -312,14 +312,15 @@ def download_all_lyrics(
 if __name__ == '__main__':
     # all_songs = download_song_data()
     # filename_all = write_songs_to_csv(all_songs, 'all_songs')
-    filename_all = 'data/all_songs_1617649557.csv'
+    filename_all = 'data/all_songs_1618263759.csv'
     all_songs = read_songs_from_csv(filename_all)
 
-    # # ts_songs = filter_ts_songs(all_songs)
-    # # filename_ts = write_songs_to_csv(ts_songs, 'ts_songs')
-    # filename_ts = 'data/ts_songs_1616618603.csv'
-    # ts_songs = read_songs_from_csv(filename_ts)
-    # download_all_lyrics(ts_songs)
+    ts_songs = filter_ts_songs(all_songs)
+    filename_ts = write_songs_to_csv(ts_songs, 'ts_songs')
+    print(filename_ts)
+    # filename_ts = 'data/ts_songs_1618428542.csv'
+    ts_songs = read_songs_from_csv(filename_ts)
+    download_all_lyrics(ts_songs)
 
     # filename_ts_adjacent = 'data/ts_adjacent_1617059623.csv'
     # ts_adjacent = read_songs_from_csv(filename_ts_adjacent)

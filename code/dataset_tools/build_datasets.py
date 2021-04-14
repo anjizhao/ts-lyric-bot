@@ -1,5 +1,6 @@
 
 import glob
+import time
 from typing import List
 
 
@@ -42,7 +43,18 @@ def write_to_file(dataset: List[str], filename: str) -> None:
 
 
 if __name__ == '__main__':
+    # song_lines = get_all_datapoints()
+    # train, test = train_test_split(song_lines, random_state=2)
+    # write_to_file(train, 'data/lyrics_dataset_train.txt')
+    # write_to_file(test, 'data/lyrics_dataset_test.txt')
+
     song_lines = get_all_datapoints()
-    train, test = train_test_split(song_lines, random_state=2)
-    write_to_file(train, 'data/lyrics_dataset_train.txt')
-    write_to_file(test, 'data/lyrics_dataset_test.txt')
+    song_lines_long = get_all_datapoints(combine_paragraphs=True)
+    write_to_file(
+        song_lines,
+        'data/lyrics_dataset_raw_{}.txt'.format(int(time.time()))
+    )
+    write_to_file(
+        song_lines_long,
+        'data/lyrics_dataset_raw_long_{}.txt'.format(int(time.time()))
+    )
