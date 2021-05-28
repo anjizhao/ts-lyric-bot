@@ -6,7 +6,9 @@ RUN apt-get update \
     curl \
     build-essential \
     mailutils \
+    postgresql-client \
     vim
+
 
 ENV POETRY_VERSION=1.1.4 \
     POETRY_HOME="/usr/poetry"

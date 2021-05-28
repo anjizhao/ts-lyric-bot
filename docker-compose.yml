@@ -1,5 +1,6 @@
 version: '3.9'
 services:
+
   app:
     build:
       context: .
@@ -8,5 +9,28 @@ services:
       - '5000:5000'
     volumes:
       - .:/app
-  # db:
-  #   image: "redis:alpine"
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: changemepls
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  liquibase:
+    image: liquibase/liquibase
+    volumes:
+      - ./db/changelog:/liquibase/changelog
+
+volumes:
+  pgdata:
+
+
+
+
+g
+# access from other service: psql -h db -U postgres
+# docker-compose exec db psql -U postgres
+# docker-compose run liquibase --defaultsFile=/liquibase/changelog/liquibase.properties --logLevel=info status
