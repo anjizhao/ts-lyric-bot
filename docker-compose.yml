@@ -30,7 +30,7 @@ volumes:
 
 
 
-g
+
 # access from other service: psql -h db -U postgres
 # docker-compose exec db psql -U postgres
 # docker-compose run liquibase --defaultsFile=/liquibase/changelog/liquibase.properties --logLevel=info status
