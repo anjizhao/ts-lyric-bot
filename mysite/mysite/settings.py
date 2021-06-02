@@ -18,6 +18,7 @@ load_dotenv()
 
 
 DJANGO_SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+EC2_HOSTNAME = os.getenv('EC2_HOSTNAME')
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -33,7 +34,9 @@ SECRET_KEY = DJANGO_SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    EC2_HOSTNAME,
+]
 
 
 # Application definition
