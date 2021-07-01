@@ -1,7 +1,7 @@
 
 from functools import partial
 from statistics import mean
-from typing import Iterator, List
+from typing import Iterator, List, Optional
 
 from nltk.lm.api import _random_generator, _weighted_choice
 from nltk.lm.models import LanguageModel, Laplace
@@ -55,6 +55,12 @@ class MyNGram:
             )
         else:
             return word_tokenize(text.lower())
+
+
+    def detokenize(self, tokens: List[str]) -> str:
+        # filter out start/end tokens before using detokenizer
+        words = [t for t in tokens if t != self.start_token and t != self.end_token]
+        return detokenizer.detokenize(words)
 
 
     def padded_tokenize(self, text: str) -> List[str]:
@@ -120,7 +126,7 @@ class MyNGram:
         return mean(entropies)
 
 
-    def generate(self, num_words=1, text_seed=None, random_seed=None):
+    def generate(self, num_words=1, text_seed: Optional[List[str]] = None, random_seed=None) -> List[str]:
         '''
         generate sentence from model. this is mostly copied from the
         nltk.lm.api.LanguageModel.generate method, but modified to include
@@ -137,9 +143,12 @@ class MyNGram:
         '''
 
         if text_seed is None:
-            text_seed = [self.start_token] * (self.model.order - 1)
+            text_seed = []
         else:
             text_seed = list(text_seed)
+
+        while len(text_seed) < self.model.order - 1:
+            text_seed = [self.start_token] + text_seed
 
         random_generator = _random_generator(random_seed)
         if num_words == 1:  # This is the base recursion case.
@@ -178,11 +187,13 @@ class MyNGram:
                 break  # end the sentence early if end_token is encountered
             generated.append(word)
 
-        return generated
+        return text_seed + generated
 
-    def generate_sentence(self, max_words: int = 30) -> str:
-        generated = self.generate(max_words)
-        return detokenizer.detokenize(generated)
+    def generate_sentence(self, max_words: int = 30, text_seed: Optional[str] = None) -> str:
+        if text_seed is not None:
+            text_seed = text_seed.split(' ')
+        generated = self.generate(max_words, text_seed=text_seed)
+        return self.detokenize(generated)
 
 
 
