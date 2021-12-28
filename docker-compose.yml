@@ -5,6 +5,8 @@ services:
     build:
       context: .
     command: tail -f /dev/null
+    environment:
+      GENIUS_CLIENT_ACCESS_TOKEN: ${GENIUS_CLIENT_ACCESS_TOKEN}
     ports:
       - '5000:5000'
     volumes:
