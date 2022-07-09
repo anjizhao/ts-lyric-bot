@@ -83,6 +83,7 @@ data/*.txt
 data/**/*.txt
 data/archive/*
 data/figures/*
+data/*song_ids*.py
 
 
 # personal notes/snippets

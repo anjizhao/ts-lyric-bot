@@ -5,7 +5,7 @@ from code.ngrams import MyNGram
 from code.save_utils import load_model
 
 
-model_filename = 'data/saved_models/kn3_all_tv.json'
+model_filename = 'data/saved_models/kn3_redtv.json'
 
 
 def main():

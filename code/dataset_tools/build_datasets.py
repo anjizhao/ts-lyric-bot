@@ -16,13 +16,16 @@ def get_all_datapoints(
     song_lines: List[str] = []
     for lyrics_filename in glob.glob(filepath):
         with open(lyrics_filename, 'r') as lyrics_file:
-            text = lyrics_file.read().strip()
+            text = lyrics_file.read().strip().replace('Embed\nShare URL\nCopy\nEmbed\nCopy', '')
             paragraphs = text.split('\n\n')
             for p in paragraphs:
                 lines = p.split('\n')
                 lines = [
                     line for line in lines
-                    if line and not line.startswith('[')
+                    if line
+                    and not line.startswith('[')
+                    and not (line.startswith('(') and line.endswith(')'))
+                    and not line.isdigit()
                 ]
                 if combine_paragraphs:
                     song_lines.append(' '.join(lines))
