@@ -18,3 +18,11 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+# with open("data/outputs.txt", "a") as openfile:
+#     for i in range(40):
+#             openfile.write(model.generate_sentence(50)+"\n")
